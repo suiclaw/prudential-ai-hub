@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prudential AI Enablement Hub</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+:root{--navy:#0B1E33;--navy-l:#132D4F;--navy-ll:#1A3A63;--red:#E31837;--red-l:#FEE2E6;--bg:#F4F7FC;--card:#FFF;--border:#E2E8F0;--green:#16A34A;--green-l:#DCFCE7;--amber:#D97706;--amber-l:#FEF3C7;--txt:#1E293B;--txt-l:#64748B}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);display:flex;height:100vh;overflow:hidden}
+
+/* Sidebar */
+.sidebar{width:240px;min-width:240px;background:var(--navy);display:flex;flex-direction:column;transition:width .3s}
+.sidebar.collapsed{width:68px;min-width:68px}
+.sidebar.collapsed .nav-label,.sidebar.collapsed .sb-span,.sidebar.collapsed .sb-ft{display:none}
+.sidebar.collapsed .nav-item{justify-content:center}
+
+.sb-hdr{padding:20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px}
+.sb-logo{width:36px;height:36px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff}
+.sb-hdr span{color:#fff;font-weight:600;font-size:14px}
+.sb-hdr small{color:rgba(255,255,255,.5);font-size:11px;display:block}
+
+.nav{flex:1;padding:8px;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:8px;color:rgba(255,255,255,.6);cursor:pointer;font-size:13px;font-weight:500;transition:all .2s}
+.nav-item:hover{background:var(--navy-l);color:#fff}
+.nav-item.active{background:var(--navy-ll);color:#fff;position:relative}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:20px;background:var(--red);border-radius:0 3px 3px 0}
+.nav-icon{width:20px;height:20px;opacity:.7}
+.nav-item.active .nav-icon{opacity:1}
+.sb-ft{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.35);font-size:11px}
+
+/* Main */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+.topbar-l{display:flex;align-items:center;gap:16px}
+.hamburger{background:none;border:none;font-size:20px;cursor:pointer;color:var(--txt-l)}
+.topbar h2{font-size:15px;font-weight:600}
+.topbar-r{display:flex;align-items:center;gap:12px}
+.topbar-badge{background:var(--red-l);color:var(--red);font-size:11px;font-weight:600;padding:4px 10px;border-radius:12px}
+.topbar-user{width:32px;height:32px;border-radius:50%;background:var(--navy);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center}
+
+.content{flex:1;overflow-y:auto;padding:24px}
+.page{display:none}.page.active{display:block}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.card:hover{box-shadow:0 4px 12px rgba(0,0,0,.05)}
+.card-hdr{font-size:11px;font-weight:600;color:var(--txt-l);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.card-val{font-size:28px;font-weight:700}
+.card-sub{font-size:12px;color:var(--txt-l);margin-top:4px}
+.up{color:var(--green);font-weight:600}
+.down{color:var(--red);font-weight:600}
+.warn{color:var(--amber);font-weight:600}
+
+/* KPI Grid */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.sparkline{margin-top:8px;height:28px}
+.sparkline svg{width:100%;height:28px}
+.sparkline polyline{fill:none;stroke-width:2;stroke-linecap:round}
+.sparkline .area{stroke:none;opacity:.1}
+
+/* Roadmap */
+.roadmap{display:flex;max-width:700px;margin:16px auto 0}
+.rm-step{flex:1;text-align:center;position:relative;padding:20px 12px}
+.rm-step::before{content:'';position:absolute;top:36px;left:0;right:0;height:3px;background:var(--border)}
+.rm-step:first-child::before{left:50%}
+.rm-step:last-child::before{right:50%}
+.rm-dot{width:14px;height:14px;border-radius:50%;background:var(--border);margin:28px auto 10px;position:relative;z-index:2}
+.rm-step.done .rm-dot{background:var(--green)}
+.rm-step.now .rm-dot{background:var(--red);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(227,24,55,.2)}50%{box-shadow:0 0 0 8px rgba(227,24,55,.1)}}
+.rm-step.done::before{background:var(--green)}
+.rm-step.now::before{background:linear-gradient(90deg,var(--green) 50%,var(--border) 50%)}
+.rm-label{font-size:12px;font-weight:600;margin-bottom:4px}
+.rm-desc{font-size:11px;color:var(--txt-l);line-height:1.4}
+
+/* Audit Trail */
+.audit-list{list-style:none}
+.audit-item{padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;display:flex;gap:8px;align-items:flex-start}
+.audit-item:last-child{border:none}
+.audit-time{color:var(--txt-l);white-space:nowrap;font-size:11px}
+.audit-dot{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.audit-dot.r{background:var(--red)}.audit-dot.a{background:var(--amber)}.audit-dot.g{background:var(--green)}
+
+/* Table */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;padding:12px 16px;font-weight:600;color:var(--txt-l);font-size:11px;text-transform:uppercase;border-bottom:2px solid var(--border);background:var(--bg);position:sticky;top:0}
+.tbl td{padding:12px 16px;border-bottom:1px solid var(--border)}
+.tbl tr{cursor:pointer;transition:background .15s}
+.tbl tbody tr:hover{background:rgba(227,24,55,.03)}
+
+.rag{width:10px;height:10px;border-radius:50%;display:inline-block}
+.rag.r{background:var(--red)}.rag.a{background:var(--amber)}.rag.g{background:var(--green)}
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.badge.pilot{background:#EFF6FF;color:#2563EB}
+.badge.prod{background:var(--green-l);color:var(--green)}
+.badge.shadow{background:var(--red-l);color:var(--red)}
+.badge.tag{background:#F0F4FF;color:#4F6BED}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border-radius:12px;width:480px;max-width:90vw;max-height:80vh;overflow-y:auto}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-head h3{font-size:15px;font-weight:700}
+.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--txt-l)}
+.modal-body{padding:20px}
+.m-field{margin-bottom:14px}
+.m-field label{display:block;font-size:10px;font-weight:600;color:var(--txt-l);text-transform:uppercase;margin-bottom:4px}
+.m-field p{font-size:13px;line-height:1.5}
+.risk-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.risk-badge.high{background:var(--red-l);color:var(--red)}
+.risk-badge.med{background:var(--amber-l);color:var(--amber)}
+
+/* PL Cards */
+.pl-card{border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;background:var(--card)}
+.pl-card.flagged{border-color:var(--red);border-width:2px}
+.flag-banner{background:var(--red);color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:4px;margin-bottom:10px;display:inline-block}
+.pl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.pl-item{font-size:12px}
+.pl-item label{color:var(--txt-l);font-size:11px;display:block;margin-bottom:2px}
+.pl-item span{font-weight:700;font-size:14px}
+.pl-item span.pos{color:var(--green)}
+.pl-item span.neg{color:var(--red)}
+
+/* Pipeline */
+.pipeline{display:flex;align-items:center;gap:0;margin:24px 0;overflow-x:auto}
+.pipe-node{padding:10px 16px;border-radius:6px;font-size:12px;font-weight:600;white-space:nowrap;background:var(--navy);color:#fff}
+.pipe-node.gate{background:var(--red)}
+.pipe-node.wdog{background:var(--amber)}
+.pipe-arrow{width:30px;height:2px;background:var(--border);position:relative}
+.pipe-arrow::after{content:'';position:absolute;right:0;top:-4px;border-left:5px solid var(--border);border-top:4px solid transparent;border-bottom:4px solid transparent}
+
+/* Gate Form */
+.gate-form{background:var(--bg);border-radius:10px;padding:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.g-field label{display:block;font-size:10px;font-weight:600;color:var(--txt-l);text-transform:uppercase;margin-bottom:3px}
+.g-field .val{font-size:13px;font-weight:600}
+.g-field .val.pending{color:var(--amber)}
+
+/* Watchdog */
+.wd-tbl{width:100%;font-size:12px;border-collapse:collapse;margin-top:12px}
+.wd-tbl th{text-align:left;padding:8px 10px;font-weight:600;color:var(--txt-l);font-size:10px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.wd-tbl td{padding:8px 10px;border-bottom:1px solid var(--border)}
+
+/* Donut */
+.donut-container{display:flex;flex-direction:column;align-items:center;padding:20px}
+.donut-label{text-align:center;margin-top:8px}
+.donut-label .pct{font-size:28px;font-weight:700;color:var(--navy)}
+.donut-label .desc{font-size:11px;color:var(--txt-l)}
+
+/* Leaderboard */
+.leader-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.leader-item:last-child{border:none}
+.leader-rank{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:var(--bg);color:var(--txt-l)}
+.leader-rank.gold{background:#FEF3C7;color:#B45309}
+.leader-rank.silver{background:#F1F5F9;color:#475569}
+.leader-rank.bronze{background:#FFF7ED;color:#C2410C}
+.leader-info{flex:1}
+.leader-name{font-size:12px;font-weight:600}
+.leader-dept{font-size:10px;color:var(--txt-l)}
+.leader-hours{font-size:13px;font-weight:700;color:var(--green)}
+
+/* Gauge */
+.gauge-container{padding:20px}
+.gauge-label{text-align:center}
+.gauge-label .pct{font-size:22px;font-weight:700;color:var(--navy)}
+.gauge-label .desc{font-size:11px;color:var(--txt-l)}
+
+/* Download */
+.dl-tile{display:flex;align-items:center;gap:14px;padding:16px 20px;border:2px dashed var(--border);border-radius:10px;cursor:pointer;transition:all .2s;margin-top:16px}
+.dl-tile:hover{border-color:var(--red);background:var(--red-l)}
+.dl-icon{font-size:24px}
+.dl-info h4{font-size:13px;font-weight:600}
+.dl-info p{font-size:11px;color:var(--txt-l);margin-top:2px}
+
+/* Filters */
+.filters{display:flex;gap:10px;margin-bottom:16px}
+.filter-sel{padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--card);font-family:inherit}
+
+/* Grid */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g21{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.s-title{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.s-sub{font-size:12px;color:var(--txt-l);margin-bottom:16px}
+
+@media(max-width:1024px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.g3,.g21{grid-template-columns:1fr}}
+@media(max-width:768px){.sidebar{position:fixed;left:-240px;height:100vh}.sidebar.open{left:0}.sidebar.collapsed{left:-68px}.kpi-grid,.g2{grid-template-columns:1fr}.pl-grid,.gate-form{grid-template-columns:1fr}.content{padding:16px}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sb-hdr">
+    <div class="sb-logo">P</div>
+    <div><span class="sb-span">Prudential<small>AI Enablement Hub</small></span></div>
+  </div>
+  <div class="nav">
+    <a class="nav-item active" onclick="showPage('dashboard')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span class="nav-label">Dashboard</span>
+    </a>
+    <a class="nav-item" onclick="showPage('assets')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      <span class="nav-label">AI Asset Map & Risk</span>
+    </a>
+    <a class="nav-item" onclick="showPage('money')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      <span class="nav-label">AI Monetisation Tracker</span>
+    </a>
+    <a class="nav-item" onclick="showPage('sdlc')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span class="nav-label">AI SDLC Governance</span>
+    </a>
+    <a class="nav-item" onclick="showPage('adoption')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      <span class="nav-label">AI for All Adoption</span>
+    </a>
+  </div>
+  <div class="sb-ft">v0.9 Internal Prototype<br>© 2026 Prudential plc</div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-l">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <h2 id="title">Dashboard</h2>
+    </div>
+    <div class="topbar-r">
+      <span class="topbar-badge">7 Alerts</span>
+      <div class="topbar-user">JT</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Page 1: Dashboard -->
+    <div class="page active" id="page-dashboard">
+      <div class="kpi-grid">
+        <div class="card">
+          <div class="card-hdr">Active AI Projects</div>
+          <div class="card-val">23</div>
+          <div class="card-sub"><span class="up">↑ 12%</span> this quarter</div>
+          <div class="sparkline"><svg viewBox="0 0 100 28"><polygon class="area" points="0,22 10,18 20,20 30,14 40,16 50,12 60,10 70,8 80,6 90,4 100,2 100,28 0,28" fill="#16A34A"/><polyline points="0,22 10,18 20,20 30,14 40,16 50,12 60,10 70,8 80,6 90,4 100,2" stroke="#16A34A"/></svg></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr">Monthly AI Cost</div>
+          <div class="card-val">HKD $184,200</div>
+          <div class="card-sub"><span class="warn">79%</span> of budget alert</div>
+          <div class="sparkline"><svg viewBox="0 0 100 28"><polygon class="area" points="0,16 10,14 20,18 30,12 40,10 50,14 60,8 70,6 80,10 90,4 100,2 100,28 0,28" fill="#D97706"/><polyline points="0,16 10,14 20,18 30,12 40,10 50,14 60,8 70,6 80,10 90,4 100,2" stroke="#D97706"/></svg></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr">High-Risk Systems</div>
+          <div class="card-val">7 / 7</div>
+          <div class="card-sub"><span class="up">100%</span> compliant</div>
+          <div class="sparkline"><svg viewBox="0 0 100 28"><polygon class="area" points="0,14 10,14 20,12 30,12 40,10 50,10 60,8 70,8 80,6 90,6 100,4 100,28 0,28" fill="#16A34A"/><polyline points="0,14 10,14 20,12 30,12 40,10 50,10 60,8 70,8 80,6 90,6 100,4" stroke="#16A34A"/></svg></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr">AI-Adopting Employees</div>
+          <div class="card-val">1,240</div>
+          <div class="card-sub"><span class="down">62%</span> of 2,000 target</div>
+          <div class="sparkline"><svg viewBox="0 0 100 28"><polygon class="area" points="0,22 10,20 20,18 30,16 40,14 50,16 60,12 70,10 80,12 90,8 100,6 100,28 0,28" fill="#E31837"/><polyline points="0,22 10,20 20,18 30,16 40,14 50,16 60,12 70,10 80,12 90,8 100,6" stroke="#E31837"/></svg></div>
+        </div>
+      </div>
+
+      <div class="g21">
+        <div class="card">
+          <div class="card-hdr">Three-Month Maturity Roadmap</div>
+          <div class="roadmap">
+            <div class="rm-step done">
+              <div class="rm-dot"></div>
+              <div class="rm-label">Month 1</div>
+              <div class="rm-desc">Baseline & Intake complete</div>
+            </div>
+            <div class="rm-step now">
+              <div class="rm-dot"></div>
+              <div class="rm-label">Month 2 — Week 3</div>
+              <div class="rm-desc">SDLC Surgery & Monetisation Pilot</div>
+            </div>
+            <div class="rm-step">
+              <div class="rm-dot"></div>
+              <div class="rm-label">Month 3</div>
+              <div class="rm-desc">AI for All Launch & Watchdog Go-Live</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hdr">Audit Trail</div>
+          <ul class="audit-list">
+            <li class="audit-item"><span class="audit-time">14:32</span><span class="audit-dot r"></span><span>Claims OCR cost exceeded threshold — alert sent</span></li>
+            <li class="audit-item"><span class="audit-time">11:15</span><span class="audit-dot a"></span><span>UW Risk Scoring drift 3.2% — auto-retrain triggered</span></li>
+            <li class="audit-item"><span class="audit-time">09:47</span><span class="audit-dot g"></span><span>Policy GenAI Chatbot shadow IT identified</span></li>
+            <li class="audit-item"><span class="audit-time">Yesterday</span><span class="audit-dot a"></span><span>Agent AI Co-pilot flagged for PDPO review</span></li>
+            <li class="audit-item"><span class="audit-time">Yesterday</span><span class="audit-dot g"></span><span>Claims OCR V2 passed quarterly audit</span></li>
+            <li class="audit-item"><span class="audit-time">2 days ago</span><span class="audit-dot r"></span><span>Marketing Content ROI inverted — sunset review</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page 2: Asset Map -->
+    <div class="page" id="page-assets">
+      <div class="s-title">AI Asset Register & Risk Exposure</div>
+      <div class="s-sub">30-Day Review — All BU submissions as of 23 April 2026</div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th>Project Name</th><th>BU</th><th>Stage</th><th>Tech Stack</th><th>Risk</th><th>Value Status</th></tr></thead>
+          <tbody>
+            <tr onclick="openModal('agent')"><td style="font-weight:600">Agent AI Co-pilot</td><td>LBU HK</td><td><span class="badge shadow">Shadow IT</span></td><td>GPT-4o / LangChain</td><td><span class="rag r"></span></td><td style="color:var(--red);font-weight:600">PDPO Data Leakage Risk</td></tr>
+            <tr onclick="openModal('claims')"><td style="font-weight:600">Claims OCR V2</td><td>LBU HK</td><td><span class="badge prod">Production</span></td><td>Azure Vision</td><td><span class="rag g"></span></td><td style="color:var(--green);font-weight:600">Audit Ready</td></tr>
+            <tr onclick="openModal('uw')"><td style="font-weight:600">UW Risk Scoring</td><td>LBU SG</td><td><span class="badge pilot">Pilot</span></td><td>XGBoost</td><td><span class="rag a"></span></td><td style="color:var(--amber);font-weight:600">Model Drift Detected</td></tr>
+            <tr onclick="openModal('chatbot')"><td style="font-weight:600">Policy GenAI Chatbot</td><td>LBU HK</td><td><span class="badge shadow">Shadow</span></td><td>Claude 3.5</td><td><span class="rag r"></span></td><td style="color:var(--red);font-weight:600">Hallucination Risk</td></tr>
+            <tr onclick="openModal('fraud')"><td style="font-weight:600">Fraud Detection Engine</td><td>Group HO</td><td><span class="badge prod">Production</span></td><td>TensorFlow</td><td><span class="rag g"></span></td><td style="color:var(--green);font-weight:600">Compliant</td></tr>
+            <tr onclick="openModal('mktg')"><td style="font-weight:600">Marketing Content Gen</td><td>LBU SG</td><td><span class="badge pilot">Pilot</span></td><td>GPT-4o / DALL-E</td><td><span class="rag a"></span></td><td style="color:var(--amber);font-weight:600">ROI Inverted</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Page 3: Monetisation -->
+    <div class="page" id="page-money">
+      <div class="s-title">AI Monetisation Process</div>
+      <div class="s-sub">Per-Project P&L Card — Cost-benefit analysis with infrastructure tagging</div>
+      <div class="filters">
+        <select class="filter-sel"><option>Cost Center: HK Head Office</option><option>Cost Center: SG Office</option><option>All</option></select>
+        <select class="filter-sel"><option>LBU: All</option><option>LBU Hong Kong</option><option>LBU Singapore</option></select>
+      </div>
+
+      <div class="pl-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <strong>Claims OCR V2</strong><span class="badge tag">🏷 Tagged</span>
+        </div>
+        <div class="pl-grid">
+          <div class="pl-item"><label>Monthly Infra Cost</label><span>HKD $12,400</span></div>
+          <div class="pl-item"><label>Human Cost</label><span>HKD $8,200</span></div>
+          <div class="pl-item"><label>Throughput Uplift</label><span>500 → 1,500/day</span></div>
+          <div class="pl-item"><label>Net AI Value</label><span class="pos">+HKD $94,300/mo</span></div>
+        </div>
+      </div>
+
+      <div class="pl-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <strong>UW Risk Scoring</strong><span class="badge tag">🏷 Tagged</span>
+        </div>
+        <div class="pl-grid">
+          <div class="pl-item"><label>Monthly Infra Cost</label><span>HKD $18,600</span></div>
+          <div class="pl-item"><label>Human Cost</label><span>HKD $14,800</span></div>
+          <div class="pl-item"><label>Throughput Uplift</label><span>3 days → 6 hrs</span></div>
+          <div class="pl-item"><label>Net AI Value</label><span class="pos">+HKD $67,400/mo</span></div>
+        </div>
+      </div>
+
+      <div class="pl-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <strong>Medical Note Summariser</strong><span class="badge tag">🏷 Tagged</span>
+        </div>
+        <div class="pl-grid">
+          <div class="pl-item"><label>Monthly Infra Cost</label><span>HKD $6,800</span></div>
+          <div class="pl-item"><label>Human Cost</label><span>HKD $4,200</span></div>
+          <div class="pl-item"><label>Throughput Uplift</label><span>12.5 hrs saved</span></div>
+          <div class="pl-item"><label>Net AI Value</label><span class="pos">+HKD $41,600/mo</span></div>
+        </div>
+      </div>
+
+      <div class="pl-card flagged">
+        <div class="flag-banner">⚠ ROI Inverted for 3 months — Sunset Review Required</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <strong>Marketing Content Gen</strong><span class="badge tag">🏷 Tagged</span>
+        </div>
+        <div class="pl-grid">
+          <div class="pl-item"><label>Monthly Infra Cost</label><span>HKD $28,400</span></div>
+          <div class="pl-item"><label>Human Cost</label><span>HKD $22,600</span></div>
+          <div class="pl-item"><label>Throughput Uplift</label><span>Low adoption</span></div>
+          <div class="pl-item"><label>Net AI Value</label><span class="neg">-HKD $18,200/mo</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page 4: SDLC -->
+    <div class="page" id="page-sdlc">
+      <div class="s-title">AI-Specific SDLC Addendum</div>
+      <div class="s-sub">Gate Checklists & Deployment Controls</div>
+
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-hdr">AI Lifecycle Pipeline</div>
+        <div class="pipeline">
+          <div class="pipe-node">Intake</div>
+          <div class="pipe-arrow"></div>
+          <div class="pipe-node">Design</div>
+          <div class="pipe-arrow"></div>
+          <div class="pipe-node">Dev & Test</div>
+          <div class="pipe-arrow"></div>
+          <div class="pipe-node gate">Pre-Deploy Gate</div>
+          <div class="pipe-arrow"></div>
+          <div class="pipe-node">Deploy</div>
+          <div class="pipe-arrow"></div>
+          <div class="pipe-node wdog">Watchdog</div>
+        </div>
+      </div>
+
+      <div class="g2">
+        <div class="card">
+          <div class="card-hdr">Pre-Deployment Gate — Risk & Cost Card</div>
+          <div class="gate-form">
+            <div class="g-field"><label>Per-Inference Cost Cap</label><div class="val">$0.02</div></div>
+            <div class="g-field"><label>Monthly Hard Cap</label><div class="val">$2,000</div></div>
+            <div class="g-field"><label>Model Decay Threshold</label><div class="val">Accuracy < 85%</div></div>
+            <div class="g-field"><label>Sign-off Status</label><div class="val pending">⏳ Pending — AI Enablement Lead</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hdr">Watchdog Alert Log</div>
+          <table class="wd-tbl">
+            <thead><tr><th>Model</th><th>Drift</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td>Claims OCR</td><td style="color:var(--amber)">+3.2%</td><td>Auto-retrain</td></tr>
+              <tr><td>UW Risk Scoring</td><td style="color:var(--amber)">+2.8%</td><td>Monitoring</td></tr>
+              <tr><td>Fraud Detection</td><td style="color:var(--green)">+0.4%</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page 5: Adoption -->
+    <div class="page" id="page-adoption">
+      <div class="s-title">AI for All — Training & Culture Dashboard</div>
+      <div class="s-sub">Employee adoption metrics and cultural transformation tracking</div>
+
+      <div class="g3">
+        <div class="card donut-container">
+          <div class="card-hdr">AI Literacy Training</div>
+          <svg class="donut-svg" viewBox="0 0 160 160" style="width:160px;height:160px">
+            <circle cx="80" cy="80" r="60" fill="none" stroke="#E2E8F0" stroke-width="16"/>
+            <circle cx="80" cy="80" r="60" fill="none" stroke="#0B1E33" stroke-width="16"
+              stroke-dasharray="295.3 82.9" stroke-dashoffset="94.2"
+              transform="rotate(-90 80 80)" stroke-linecap="round"/>
+            <text x="80" y="76" text-anchor="middle" fill="#0B1E33" font-size="28" font-weight="700">78%</text>
+            <text x="80" y="96" text-anchor="middle" fill="#64748B" font-size="10">Completed</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <div class="card-hdr">AI Value Challenge Board</div>
+          <div class="leader-item">
+            <div class="leader-rank gold">1</div>
+            <div class="leader-info"><div class="leader-name">Sarah T.</div><div class="leader-dept">Underwriting</div></div>
+            <div class="leader-hours">12.5h saved</div>
+          </div>
+          <div class="leader-item">
+            <div class="leader-rank silver">2</div>
+            <div class="leader-info"><div class="leader-name">David K.</div><div class="leader-dept">Claims Ops</div></div>
+            <div class="leader-hours">9.2h saved</div>
+          </div>
+          <div class="leader-item">
+            <div class="leader-rank bronze">3</div>
+            <div class="leader-info"><div class="leader-name">Mei L.</div><div class="leader-dept">Actuarial</div></div>
+            <div class="leader-hours">7.8h saved</div>
+          </div>
+          <div class="leader-item">
+            <div class="leader-rank">4</div>
+            <div class="leader-info"><div class="leader-name">Raj P.</div><div class="leader-dept">Finance</div></div>
+            <div class="leader-hours">6.1h saved</div>
+          </div>
+          <div class="leader-item">
+            <div class="leader-rank">5</div>
+            <div class="leader-info"><div class="leader-name">Jenny W.</div><div class="leader-dept">Compliance</div></div>
+            <div class="leader-hours">5.4h saved</div>
+          </div>
+        </div>
+
+        <div class="card gauge-container">
+          <div class="card-hdr">Shadow AI Migration</div>
+          <svg viewBox="0 0 200 120" style="width:200px;height:120px">
+            <path d="M30 100 A70 70 0 0 1 170 100" fill="none" stroke="#E2E8F0" stroke-width="14" stroke-linecap="round"/>
+            <path d="M30 100 A70 70 0 0 1 130 38" fill="none" stroke="#16A34A" stroke-width="14" stroke-linecap="round"/>
+            <path d="M130 38 A70 70 0 0 1 170 100" fill="none" stroke="#E2E8F0" stroke-width="14" stroke-linecap="round"/>
+            <text x="100" y="90" text-anchor="middle" fill="#0B1E33" font-size="24" font-weight="700">72%</text>
+            <text x="100" y="108" text-anchor="middle" fill="#64748B" font-size="10">Migrated to Sandbox</text>
+            <text x="30" y="116" text-anchor="middle" fill="#94A3B8" font-size="9">40%</text>
+            <text x="170" y="116" text-anchor="middle" fill="#94A3B8" font-size="9">85%</text>
+          </svg>
+          <div class="gauge-label">
+            <div class="desc">Target: 85% by Month 3</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dl-tile" onclick="alert('Download initiated — 10 Gold Prompt Templates (Internal Use Only)')">
+        <div class="dl-icon">📄</div>
+        <div class="dl-info">
+          <h4>Download: 10 Gold Prompt Templates</h4>
+          <p>Internal Use Only — Curated by AI Enablement Lead</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- Risk Card Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <h3 id="modal-title">Risk Card</h3>
+      <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const pages = {
+  dashboard: 'Dashboard',
+  assets: 'AI Asset Map & Risk',
+  money: 'AI Monetisation Tracker',
+  sdlc: 'AI SDLC Governance',
+  adoption: 'AI for All Adoption'
+};
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('title').textContent = pages[id];
+  if (window.innerWidth < 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  if (window.innerWidth < 768) {
+    sb.classList.toggle('open');
+  } else {
+    sb.classList.toggle('collapsed');
+  }
+}
+
+const riskData = {
+  agent: {
+    title: 'Agent AI Co-pilot — Risk Card',
+    risk: 'high',
+    riskLabel: 'High Risk — PDPO Data Leakage',
+    desc: 'Unsanctioned AI co-pilot deployed within LBU HK operations. Customer PII is being processed through external API endpoints without data residency controls, violating PDPO Section 33 requirements.',
+    remediation: '1. Immediate sandbox migration\n2. Implement data masking layer\n3. PDPO impact assessment within 14 days\n4. Decommission external endpoint',
+    owner: 'LBU HK CTO — Raymond Cheung',
+    deadline: '7 May 2026'
+  },
+  claims: {
+    title: 'Claims OCR V2 — Risk Card',
+    risk: 'med',
+    riskLabel: 'Low Risk — Audit Ready',
+    desc: 'Production-grade OCR system with full audit trail. Monthly inference cost tracking active. Data residency confirmed within HK region. Quarterly audit passed with zero findings.',
+    remediation: 'Continue quarterly audit cycle. Monitor per-inference cost trend (currently +2.1% MoM).',
+    owner: 'Claims Ops Lead — Patricia Ho',
+    deadline: 'Next review: 30 Jun 2026'
+  },
+  uw: {
+    title: 'UW Risk Scoring — Risk Card',
+    risk: 'med',
+    riskLabel: 'Medium Risk — Model Drift',
+    desc: 'XGBoost model showing 3.2% accuracy drift above baseline. Feature distribution shift detected in medical history inputs, likely driven by post-COVID underwriting pattern changes.',
+    remediation: 'Auto-retrain triggered on 20 Apr 2026. Manual review of feature importance scheduled. Fallback to rule-based scoring if drift exceeds 5%.',
+    owner: 'LBU SG Chief Actuary — Dr. Lin Wei',
+    deadline: '2 May 2026'
+  },
+  chatbot: {
+    title: 'Policy GenAI Chatbot — Risk Card',
+    risk: 'high',
+    riskLabel: 'High Risk — Hallucination',
+    desc: 'Shadow IT chatbot deployed without approval. Generating policy advice with 12% hallucination rate in internal testing. No guardrails or human-in-the-loop verification. Potential mis-selling liability.',
+    remediation: '1. Immediate takedown order issued\n2. RAG pipeline with verified policy corpus\n3. Implement factual consistency checker\n4. Mandatory human review for advice output',
+    owner: 'LBU HK Digital Head — Steven Yeo',
+    deadline: '30 Apr 2026 (Emergency)'
+  },
+  fraud: {
+    title: 'Fraud Detection Engine — Risk Card',
+    risk: 'med',
+    riskLabel: 'Low Risk — Compliant',
+    desc: 'Production fraud detection model with 99.2% precision. Fully audited with explainability reports. Deployed on Vertex AI with HK data residency. Monthly cost within 4% of forecast.',
+    remediation: 'No immediate action. Annual model refresh scheduled for Q3 2026.',
+    owner: 'Group CISO — Michael Tan',
+    deadline: 'Q3 2026 review'
+  },
+  mktg: {
+    title: 'Marketing Content Gen — Risk Card',
+    risk: 'high',
+    riskLabel: 'Medium Risk — ROI Inverted',
+    desc: 'Content generation pilot showing negative ROI for 3 consecutive months. Infrastructure cost high due to DALL-E 3 image generation. Low adoption rate (23%) among marketing team. Content quality inconsistent with brand guidelines.',
+    remediation: '1. Sunset review initiated 18 Apr 2026\n2. Evaluate cheaper model alternatives\n3. If no improvement by 15 May, recommend full decommission',
+    owner: 'LBU SG Marketing — Alicia Ng',
+    deadline: '15 May 2026'
+  }
+};
+
+function openModal(id) {
+  const d = riskData[id];
+  if (!d) return;
+  document.getElementById('modal-title').textContent = d.title;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="m-field"><label>Risk Assessment</label><p><span class="risk-badge ${d.risk}">${d.riskLabel}</span></p></div>
+    <div class="m-field"><label>Risk Description</label><p>${d.desc}</p></div>
+    <div class="m-field"><label>Remediation Plan</label><p>${d.remediation.replace(/\n/g, '<br>')}</p></div>
+    <div class="m-field"><label>Owner</label><p>${d.owner}</p></div>
+    <div class="m-field"><label>Deadline</label><p style="font-weight:700">${d.deadline}</p></div>
+  `;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+}
+</script>
+</body>
+</html>
